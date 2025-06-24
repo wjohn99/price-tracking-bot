@@ -18,5 +18,15 @@ class PriceTracking:
             'vs_currencies': 'usd'
         }
 
-        r = requests.get(API_ENDPOINT, headers=self.header, params=self.params)
-        return r.json()[coin_id]['usd']
+        try:
+            r = requests.get(API_ENDPOINT, headers=self.header, params=self.params)
+            r.raise_for_status()
+            return r.json()[coin_id]['usd']
+        except requests.exceptions.HTTPError as e:
+            if r.status_code == 429:
+                print('CoinGecko API rate limit exceeded')
+            elif r.status_code in (500, 503):
+                print('CoinGecko API unavailable')
+            else:
+                print(f'HTTP error: {e}')
+            return None
